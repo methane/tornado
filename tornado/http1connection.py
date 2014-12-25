@@ -484,10 +484,13 @@ class HTTP1Connection(httputil.HTTPConnection):
 
     def _parse_headers(self, data):
         data = native_str(data.decode('latin1'))
-        eol = data.find("\r\n")
-        start_line = data[:eol]
+        lines = data.splitlines()
+        start_line = lines[0]
         try:
-            headers = httputil.HTTPHeaders.parse(data[eol:])
+            headers = httputil.HTTPHeaders()
+            for line in lines[1:]:
+                if line:
+                    headers.parse_line(line)
         except ValueError:
             # probably form split() if there was no ':' in the line
             raise httputil.HTTPInputError("Malformed HTTP headers: %r" %
